@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能网页搜索与分析系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0 30px;
+        }
+
+        header h1 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        header p {
+            color: rgba(255,255,255,0.8);
+            font-size: 1.1rem;
+        }
+
+        .search-box {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            margin-bottom: 20px;
+        }
+
+        .search-options {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-option label {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .search-option select {
+            padding: 8px 16px;
+            font-size: 0.95rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            outline: none;
+            cursor: pointer;
+            background: white;
+            color: #333;
+            transition: border-color 0.3s;
+        }
+
+        .search-option select:focus {
+            border-color: #667eea;
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .search-input-group input {
+            flex: 1;
+            padding: 16px 20px;
+            font-size: 1.1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .search-input-group input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-input-group button {
+            padding: 16px 32px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .search-input-group button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .search-input-group button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .progress-container {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .progress-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-info {
+            margin-top: 12px;
+            font-size: 0.95rem;
+            color: #666;
+        }
+
+        .realtime-analysis-container {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .realtime-header {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .realtime-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .realtime-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .realtime-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-left: 4px solid #667eea;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .realtime-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .realtime-card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+            margin-right: 12px;
+        }
+
+        .realtime-card-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .realtime-card-url {
+            font-size: 0.85rem;
+            color: #667eea;
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+
+        .realtime-card-abstract {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: #fff;
+            border-radius: 8px;
+            line-height: 1.5;
+        }
+
+        .realtime-card-analysis {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #444;
+            white-space: pre-wrap;
+            padding: 12px;
+            background: #fff;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+
+        .result-container {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .result-header {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .result-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .result-summary {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: #444;
+            white-space: pre-wrap;
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        .analyses-section {
+            margin-top: 24px;
+        }
+
+        .analyses-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .analysis-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .analysis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .analysis-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+            margin-right: 12px;
+        }
+
+        .analysis-url {
+            font-size: 0.85rem;
+            color: #667eea;
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+
+        .analysis-abstract {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: #fff;
+            border-radius: 8px;
+        }
+
+        .analysis-content {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #444;
+            white-space: pre-wrap;
+        }
+
+        .token-stats {
+            margin-top: 12px;
+            padding: 10px 12px;
+            background: #f0f4ff;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        .token-stats-header {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #667eea;
+        }
+
+        .token-stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 4px 0;
+        }
+
+        .token-stats-label {
+            color: #666;
+        }
+
+        .token-stats-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .token-stats-value.highlight {
+            color: #667eea;
+        }
+
+        .token-stats-value.success {
+            color: #52c41a;
+        }
+
+        .token-stats-value.warning {
+            color: #faad14;
+        }
+
+        .prompt-section {
+            margin-top: 12px;
+            padding: 12px;
+            background: #fffbe6;
+            border-radius: 8px;
+            border-left: 3px solid #faad14;
+        }
+
+        .prompt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .prompt-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #856404;
+        }
+
+        .prompt-toggle-btn {
+            font-size: 0.8rem;
+            color: #667eea;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .prompt-content {
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: #555;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .compression-bar {
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .compression-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #52c41a, #667eea);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .error-message {
+            background: #fff5f5;
+            border: 1px solid #ffccc7;
+            border-radius: 12px;
+            padding: 16px;
+            color: #c53030;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .html-content {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #444;
+        }
+
+        .html-content .analysis-result,
+        .html-content .summary-report {
+            background: #fff;
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .html-content h3, .html-content h4 {
+            color: #667eea;
+            margin-bottom: 12px;
+        }
+
+        .html-content h3 {
+            font-size: 1.3rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+
+        .html-content h4 {
+            font-size: 1.1rem;
+            color: #555;
+        }
+
+        .html-content .section {
+            margin-bottom: 12px;
+        }
+
+        .html-content ul, .html-content ol {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+
+        .html-content li {
+            margin-bottom: 6px;
+            line-height: 1.5;
+        }
+
+        .html-content p {
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+
+        .html-content .answer {
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .html-content .answer:contains('是') {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .html-content .confidence {
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .html-content strong {
+            color: #333;
+        }
+
+        .html-content hr {
+            border: none;
+            border-top: 1px solid #e0e0e0;
+            margin: 16px 0;
+        }
+
+        .html-content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .markdown-content {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: #444;
+            padding: 12px;
+            background: #fff;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+
+        .markdown-content h1 {
+            font-size: 1.5rem;
+            color: #667eea;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .markdown-content h2 {
+            font-size: 1.3rem;
+            color: #555;
+            margin-top: 20px;
+            margin-bottom: 12px;
+        }
+
+        .markdown-content h3 {
+            font-size: 1.1rem;
+            color: #555;
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
+
+        .markdown-content h4 {
+            font-size: 1rem;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .markdown-content p {
+            margin: 12px 0;
+            line-height: 1.7;
+        }
+
+        .markdown-content ul, .markdown-content ol {
+            margin-left: 24px;
+            margin-top: 8px;
+            margin-bottom: 12px;
+        }
+
+        .markdown-content li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        .markdown-content strong {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .markdown-content code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+        }
+
+        .markdown-content pre {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 12px 0;
+        }
+
+        .markdown-content pre code {
+            background: none;
+            padding: 0;
+            color: #333;
+        }
+
+        .markdown-content blockquote {
+            border-left: 3px solid #667eea;
+            padding-left: 12px;
+            margin: 12px 0;
+            color: #666;
+            font-style: italic;
+        }
+
+        .markdown-content hr {
+            border: none;
+            border-top: 1px solid #e0e0e0;
+            margin: 20px 0;
+        }
+
+        .markdown-content a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .markdown-content a:hover {
+            text-decoration: underline;
+        }
+
+        .markdown-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+        }
+
+        .markdown-content th, .markdown-content td {
+            border: 1px solid #e0e0e0;
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .markdown-content th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .html-content blockquote {
+            border-left: 3px solid #667eea;
+            padding-left: 12px;
+            margin: 12px 0;
+            color: #666;
+            font-style: italic;
+        }
+
+        .realtime-card-analysis {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #444;
+        }
+
+        .realtime-card-analysis .analysis-result,
+        .realtime-card-analysis .summary-report {
+            background: #fff;
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .result-summary {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: #444;
+        }
+
+        .result-summary .summary-report {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .result-summary .summary-report h3 {
+            font-size: 1.4rem;
+            color: #667eea;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 12px;
+        }
+
+        .result-summary .summary-report h4 {
+            font-size: 1.1rem;
+            color: #555;
+            margin-top: 16px;
+            margin-bottom: 10px;
+        }
+
+        .result-summary .summary-report .section {
+            margin-bottom: 16px;
+        }
+
+        .result-summary .summary-report ul {
+            margin-left: 24px;
+            margin-top: 8px;
+        }
+
+        .result-summary .summary-report li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        .result-summary .summary-report p {
+            line-height: 1.7;
+            margin-top: 8px;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(102, 126, 234, 0.2);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .stats-section {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 2px solid #667eea;
+        }
+
+        .query-rewrite-container {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-left: 4px solid #28a745;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .query-rewrite-header {
+            margin-bottom: 12px;
+        }
+
+        .query-rewrite-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .query-rewrite-content {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .query-item {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .query-label {
+            display: block;
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .query-value {
+            display: block;
+            font-size: 1rem;
+            color: #333;
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        .query-value.rewritten {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .query-arrow {
+            font-size: 1.5rem;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .search-results-container {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-left: 4px solid #17a2b8;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .search-results-header {
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .search-results-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .search-url {
+            font-size: 0.85rem;
+            color: #17a2b8;
+            word-break: break-all;
+        }
+
+        .search-url a {
+            color: #17a2b8;
+            text-decoration: none;
+        }
+
+        .search-url a:hover {
+            text-decoration: underline;
+        }
+
+        .search-results-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .search-result-item {
+            background: #f8f9fa;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border-left: 3px solid #17a2b8;
+        }
+
+        .search-result-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+            word-break: break-all;
+        }
+
+        .search-result-url {
+            font-size: 0.85rem;
+            color: #17a2b8;
+            word-break: break-all;
+            margin-bottom: 4px;
+        }
+
+        .search-result-abstract {
+            font-size: 0.85rem;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .stats-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 4px;
+        }
+
+        .stat-value.success {
+            color: #52c41a;
+        }
+
+        .stat-value.warning {
+            color: #faad14;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .stats-table-container {
+            overflow-x: auto;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        .stats-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .stats-table th:first-child {
+            border-radius: 8px 0 0 0;
+        }
+
+        .stats-table th:last-child {
+            border-radius: 0 8px 0 0;
+        }
+
+        .stats-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.9rem;
+            color: #444;
+        }
+
+        .stats-table tbody tr:hover {
+            background: #fff;
+        }
+
+        .stats-table tbody tr:last-child td:first-child {
+            border-radius: 0 0 0 8px;
+        }
+
+        .stats-table tbody tr:last-child td:last-child {
+            border-radius: 0 0 8px 0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-badge.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-badge.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        @media (max-width: 768px) {
+            .search-input-group {
+                flex-direction: column;
+            }
+
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .realtime-list {
+                max-height: 400px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 智能网页搜索与分析系统</h1>
+            <p>基于LangChain和LangGraph，自动搜索并分析网页内容</p>
+        </header>
+
+        <div class="search-box">
+            <div class="search-options">
+                <div class="search-option">
+                    <label for="searchEngine">搜索引擎:</label>
+                    <select id="searchEngine">
+                        <option value="bing">必应 (默认)</option>
+                        <option value="baidu">百度</option>
+                    </select>
+                </div>
+                <div class="search-option">
+                    <label for="llmModel">大语言模型:</label>
+                    <select id="llmModel">
+                        <option value="llama3.2:3b">Llama3.2:3b (默认)</option>
+                        <option value="qwen3.5:2b">Qwen3.5:2b</option>
+                    </select>
+                </div>
+
+            </div>
+            <div class="search-input-group">
+                <input type="text" id="queryInput" placeholder="输入您要搜索的内容..." maxlength="200">
+                <button id="searchBtn">搜索分析</button>
+            </div>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-header">
+                <span class="progress-title" id="progressTitle">正在搜索...</span>
+                <span class="progress-info" id="progressInfo">0/20</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-info" id="currentTask"></div>
+        </div>
+
+        <div class="query-rewrite-container" id="queryRewriteContainer" style="display: none;">
+            <div class="query-rewrite-header">
+                <div class="query-rewrite-title">🔄 查询改写</div>
+            </div>
+            <div class="query-rewrite-content">
+                <div class="query-item">
+                    <span class="query-label">原始查询:</span>
+                    <span class="query-value" id="originalQuery"></span>
+                </div>
+                <div class="query-arrow">→</div>
+                <div class="query-item">
+                    <span class="query-label">搜索关键词:</span>
+                    <span class="query-value rewritten" id="rewrittenQuery"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="search-results-container" id="searchResultsContainer" style="display: none;">
+            <div class="search-results-header">
+                <div class="search-results-title">🔗 搜索结果</div>
+                <div class="search-url" id="searchUrl"></div>
+            </div>
+            <div class="search-results-list" id="searchResultsList"></div>
+        </div>
+
+        <div class="realtime-analysis-container" id="realtimeContainer">
+            <div class="realtime-header">
+                <div class="realtime-title">📋 实时分析进度</div>
+            </div>
+            <div class="realtime-list" id="realtimeList"></div>
+        </div>
+
+        <div class="result-container" id="resultContainer">
+            <div class="result-header">
+                <div class="result-title">📊 最终分析报告</div>
+                <div class="result-summary" id="resultSummary"></div>
+            </div>
+
+            <div class="stats-section" id="statsSection">
+                <div class="stats-title">📈 检索统计概览</div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="statTotal">0</div>
+                        <div class="stat-label">检索总数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value success" id="statSuccess">0</div>
+                        <div class="stat-label">成功分析</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning" id="statFailed">0</div>
+                        <div class="stat-label">失败数量</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statAvgTokens">0</div>
+                        <div class="stat-label">平均Token数</div>
+                    </div>
+                </div>
+                <div class="stats-table-container">
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>标题</th>
+                                <th>状态</th>
+                                <th>原始字符</th>
+                                <th>压缩字符</th>
+                                <th>压缩比</th>
+                                <th>Token估算</th>
+                            </tr>
+                        </thead>
+                        <tbody id="statsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="analyses-section" id="analysesSection">
+                <div class="analyses-title">📋 所有页面详细分析</div>
+                <div id="analysesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const queryInput = document.getElementById('queryInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const searchEngineSelect = document.getElementById('searchEngine');
+        const llmModelSelect = document.getElementById('llmModel');
+        const errorMessage = document.getElementById('errorMessage');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressTitle = document.getElementById('progressTitle');
+        const progressInfo = document.getElementById('progressInfo');
+        const progressFill = document.getElementById('progressFill');
+        const currentTask = document.getElementById('currentTask');
+        const realtimeContainer = document.getElementById('realtimeContainer');
+        const realtimeList = document.getElementById('realtimeList');
+        const resultContainer = document.getElementById('resultContainer');
+        const resultSummary = document.getElementById('resultSummary');
+        const analysesList = document.getElementById('analysesList');
+
+        let ws = null;
+        let analyses = [];
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.host;
+            ws = new WebSocket(`${protocol}//${host}/ws`);
+
+            ws.onopen = () => {
+                console.log('WebSocket连接已建立');
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                if (data.error) {
+                    showError(data.error);
+                    searchBtn.disabled = false;
+                    searchBtn.innerHTML = '搜索分析';
+                    progressContainer.style.display = 'none';
+                    return;
+                }
+
+                switch (data.status) {
+                    case 'searching':
+                        progressTitle.innerHTML = '<span class="loading-spinner"></span>正在搜索...';
+                        progressInfo.textContent = '0/20';
+                        progressFill.style.width = '0%';
+                        currentTask.textContent = data.message;
+                        break;
+
+                    case 'query_rewritten':
+                        document.getElementById('originalQuery').textContent = data.original_query;
+                        document.getElementById('rewrittenQuery').textContent = data.rewritten_query;
+                        document.getElementById('queryRewriteContainer').style.display = 'block';
+                        progressTitle.textContent = '正在搜索';
+                        currentTask.textContent = `使用关键词: ${data.rewritten_query}`;
+                        break;
+
+                    case 'search_complete':
+                        progressTitle.textContent = '正在分析网页内容';
+                        currentTask.textContent = `找到 ${data.count} 个搜索结果`;
+                        
+                        const searchUrlElem = document.getElementById('searchUrl');
+                        if (data.search_url) {
+                            searchUrlElem.innerHTML = `<a href="${data.search_url}" target="_blank" rel="noopener noreferrer">查看搜索页面</a>`;
+                        } else {
+                            searchUrlElem.textContent = '';
+                        }
+                        
+                        const searchResultsList = document.getElementById('searchResultsList');
+                        searchResultsList.innerHTML = '';
+                        if (data.results && data.results.length > 0) {
+                            data.results.forEach((result, index) => {
+                                const item = document.createElement('div');
+                                item.className = 'search-result-item';
+                                item.innerHTML = `
+                                    <div class="search-result-title">${index + 1}. ${result.title}</div>
+                                    <div class="search-result-url"><a href="${result.url}" target="_blank" rel="noopener noreferrer">${result.url}</a></div>
+                                    ${result.abstract ? `<div class="search-result-abstract">${result.abstract}</div>` : ''}
+                                `;
+                                searchResultsList.appendChild(item);
+                            });
+                            document.getElementById('searchResultsContainer').style.display = 'block';
+                        }
+                        
+                        realtimeContainer.style.display = 'block';
+                        realtimeList.innerHTML = '';
+                        analyses = [];
+                        break;
+
+                    case 'page_analyzed':
+                        const progress = (data.index / data.total) * 100;
+                        progressInfo.textContent = `${data.index}/${data.total}`;
+                        progressFill.style.width = `${progress}%`;
+                        currentTask.textContent = `正在分析: ${data.title}`;
+                        
+                        const analysisData = {
+                            title: data.title,
+                            url: data.url,
+                            abstract: data.abstract,
+                            analysis: data.analysis,
+                            token_stats: data.token_stats
+                        };
+                        analyses.push(analysisData);
+                        
+                        addRealtimeCard(data.index, analysisData);
+                        
+                        realtimeList.scrollTop = realtimeList.scrollHeight;
+                        break;
+
+                    case 'summarizing':
+                        progressTitle.textContent = '<span class="loading-spinner"></span>正在汇总分析结果';
+                        currentTask.textContent = data.message;
+                        break;
+
+                    case 'completed':
+                        console.log('Received completed data:', data);
+                        progressContainer.style.display = 'none';
+                        displayResults(data.summary, data.analyses);
+                        realtimeContainer.style.display = 'none';
+                        searchBtn.disabled = false;
+                        searchBtn.innerHTML = '搜索分析';
+                        break;
+
+                    case 'error':
+                        showError(data.message);
+                        searchBtn.disabled = false;
+                        searchBtn.innerHTML = '搜索分析';
+                        progressContainer.style.display = 'none';
+                        break;
+                }
+            };
+
+            ws.onclose = () => {
+                console.log('WebSocket连接已关闭');
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket错误:', error);
+                showError('WebSocket连接失败，请刷新页面重试');
+            };
+        }
+
+        function addRealtimeCard(index, data) {
+            const card = document.createElement('div');
+            card.className = 'realtime-card';
+            card.id = `card-${index}`;
+            
+            let tokenStatsHTML = '';
+            if (data.token_stats && data.token_stats.token_estimate > 0) {
+                const stats = data.token_stats;
+                const compressionPercent = Math.min((stats.token_estimate / 4000) * 100, 100).toFixed(1);
+                const compressionClass = stats.token_estimate <= 4000 ? 'success' : 'warning';
+                
+                tokenStatsHTML = `
+                    <div class="token-stats">
+                        <div class="token-stats-header">📊 Token压缩统计</div>
+                        <div class="token-stats-row">
+                            <span class="token-stats-label">原始字符数:</span>
+                            <span class="token-stats-value">${stats.raw_char_count.toLocaleString()}</span>
+                        </div>
+                        <div class="token-stats-row">
+                            <span class="token-stats-label">原始Token估算:</span>
+                            <span class="token-stats-value">${stats.raw_token_estimate.toLocaleString()}</span>
+                        </div>
+                        <div class="token-stats-row">
+                            <span class="token-stats-label">压缩后字符数:</span>
+                            <span class="token-stats-value">${stats.char_count.toLocaleString()}</span>
+                        </div>
+                        <div class="token-stats-row">
+                            <span class="token-stats-label">压缩后Token估算:</span>
+                            <span class="token-stats-value highlight">${stats.token_estimate.toLocaleString()}</span>
+                        </div>
+                        <div class="token-stats-row">
+                            <span class="token-stats-label">压缩比:</span>
+                            <span class="token-stats-value ${compressionClass}">${stats.compression_ratio}x</span>
+                        </div>
+                        <div class="compression-bar">
+                            <div class="compression-fill" style="width: ${compressionPercent}%"></div>
+                        </div>
+                    </div>
+                `;
+            } else if (data.token_stats && data.token_stats.status !== 'success') {
+                tokenStatsHTML = `
+                    <div class="token-stats">
+                        <div class="token-stats-header">⚠️ Token统计</div>
+                        <div class="token-stats-row">
+                            <span class="token-stats-value warning">${data.analysis}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            let promptHTML = '';
+            if (data.prompt && data.prompt.length > 0) {
+                promptHTML = `
+                    <div class="prompt-section">
+                        <div class="prompt-header">
+                            <div class="prompt-title">📝 LLM Prompt (${data.prompt_length}字符)</div>
+                            <span class="prompt-toggle-btn" onclick="togglePrompt(this)">展开</span>
+                        </div>
+                        <div class="prompt-content" style="display: none;">${escapeHtml(data.prompt)}</div>
+                    </div>
+                `;
+            }
+            
+            card.innerHTML = `
+                <div class="realtime-card-header">
+                    <div class="realtime-card-title">${index}. ${data.title}</div>
+                    <div class="realtime-card-badge">已完成</div>
+                </div>
+                <div class="realtime-card-url"><a href="${data.url}" target="_blank" rel="noopener">${data.url}</a></div>
+                ${data.abstract ? `<div class="realtime-card-abstract"><strong>摘要：</strong>${data.abstract}</div>` : ''}
+                ${tokenStatsHTML}
+                <div class="realtime-card-analysis">${data.analysis}</div>
+                ${promptHTML}
+            `;
+            realtimeList.appendChild(card);
+        }
+
+        function displayResults(summary, analysesData) {
+            resultSummary.innerHTML = summary;
+            
+            const total = analysesData.length;
+            const successCount = analysesData.filter(a => a.token_stats && a.token_stats.status === 'success').length;
+            const failedCount = total - successCount;
+            const avgTokens = total > 0 
+                ? Math.round(analysesData.reduce((sum, a) => sum + (a.token_stats?.token_estimate || 0), 0) / total) 
+                : 0;
+            
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statSuccess').textContent = successCount;
+            document.getElementById('statFailed').textContent = failedCount;
+            document.getElementById('statAvgTokens').textContent = avgTokens.toLocaleString();
+            
+            const statsTableBody = document.getElementById('statsTableBody');
+            statsTableBody.innerHTML = '';
+            
+            analysesData.forEach((analysis, index) => {
+                const stats = analysis.token_stats || {};
+                const status = stats.status || 'unknown';
+                const statusClass = status === 'success' ? 'success' : status === 'unknown' ? 'warning' : 'failed';
+                const statusText = status === 'success' ? '成功' : status === 'fetch_failed' ? '获取失败' : status === 'pdf_file' ? 'PDF文件' : status === 'extract_failed' ? '提取失败' : '未知';
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${analysis.title}">${analysis.title}</td>
+                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    <td>${(stats.raw_char_count || 0).toLocaleString()}</td>
+                    <td>${(stats.char_count || 0).toLocaleString()}</td>
+                    <td>${(stats.compression_ratio || 0)}x</td>
+                    <td>${(stats.token_estimate || 0).toLocaleString()}</td>
+                `;
+                statsTableBody.appendChild(row);
+            });
+            
+            analysesList.innerHTML = '';
+            analysesData.forEach((analysis, index) => {
+                const card = document.createElement('div');
+                card.className = 'analysis-card';
+                
+                let tokenStatsHTML = '';
+                if (analysis.token_stats && analysis.token_stats.token_estimate > 0) {
+                    const stats = analysis.token_stats;
+                    const compressionPercent = Math.min((stats.token_estimate / 4000) * 100, 100).toFixed(1);
+                    const compressionClass = stats.token_estimate <= 4000 ? 'success' : 'warning';
+                    
+                    tokenStatsHTML = `
+                        <div class="token-stats">
+                            <div class="token-stats-header">📊 Token压缩统计</div>
+                            <div class="token-stats-row">
+                                <span class="token-stats-label">原始Token:</span>
+                                <span class="token-stats-value">${stats.raw_token_estimate.toLocaleString()}</span>
+                            </div>
+                            <div class="token-stats-row">
+                                <span class="token-stats-label">压缩后Token:</span>
+                                <span class="token-stats-value highlight">${stats.token_estimate.toLocaleString()}</span>
+                            </div>
+                            <div class="token-stats-row">
+                                <span class="token-stats-label">压缩比:</span>
+                                <span class="token-stats-value ${compressionClass}">${stats.compression_ratio}x</span>
+                            </div>
+                            <div class="compression-bar">
+                                <div class="compression-fill" style="width: ${compressionPercent}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                card.innerHTML = `
+                    <div class="analysis-header">
+                        <div class="analysis-title">${index + 1}. ${analysis.title}</div>
+                    </div>
+                    <div class="analysis-url"><a href="${analysis.url}" target="_blank" rel="noopener">${analysis.url}</a></div>
+                    ${analysis.abstract ? `<div class="analysis-abstract"><strong>摘要：</strong>${analysis.abstract}</div>` : ''}
+                    ${tokenStatsHTML}
+                    <div class="analysis-content">${analysis.analysis}</div>
+                `;
+                analysesList.appendChild(card);
+            });
+
+            resultContainer.style.display = 'block';
+            realtimeList.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function togglePrompt(element) {
+            const content = element.parentElement.nextElementSibling;
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                element.textContent = '收起';
+            } else {
+                content.style.display = 'none';
+                element.textContent = '展开';
+            }
+        }
+
+        searchBtn.addEventListener('click', () => {
+            const query = queryInput.value.trim();
+            
+            if (!query) {
+                showError('请输入搜索内容');
+                return;
+            }
+
+            searchBtn.disabled = true;
+            searchBtn.innerHTML = '<span class="loading-spinner"></span>搜索中...';
+            
+            errorMessage.style.display = 'none';
+            resultContainer.style.display = 'none';
+            realtimeContainer.style.display = 'none';
+            realtimeList.innerHTML = '';
+            progressContainer.style.display = 'block';
+
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                connectWebSocket();
+            }
+
+            setTimeout(() => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    const message = {
+                        query: query,
+                        search_engine: searchEngineSelect.value,
+                        llm_model: llmModelSelect.value,
+                        num_results: 20
+                    };
+                    console.log('Sending message:', message);
+                    ws.send(JSON.stringify(message));
+                } else {
+                    showError('无法建立连接，请检查服务是否运行');
+                    searchBtn.disabled = false;
+                    searchBtn.innerHTML = '搜索分析';
+                    progressContainer.style.display = 'none';
+                }
+            }, 100);
+        });
+
+        queryInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                searchBtn.click();
+            }
+        });
+
+        connectWebSocket();
+    </script>
+</body>
+</html>
