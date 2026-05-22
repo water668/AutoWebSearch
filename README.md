@@ -222,4 +222,4 @@ llm_client = OllamaClient(
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=yourusername/AutoWebSearch&type=Timeline)](https://star-history.com/#yourusername/AutoWebSearch&Timeline)
+[![Star History Chart](https://api.star-history.com/svg?repos=water668/AutoWebSearch&type=Timeline)](https://star-history.com/water668/AutoWebSearch&Timeline)
